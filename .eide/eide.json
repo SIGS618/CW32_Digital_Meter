@@ -204,6 +204,7 @@
           "Board",
           "BSP/i2c",
           "BSP/uart",
+          "BSP/adc",
           "Libraries/inc",
           "Module",
           "Module/OLED"

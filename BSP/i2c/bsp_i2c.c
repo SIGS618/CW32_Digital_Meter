@@ -1,7 +1,36 @@
 #include "bsp_i2c.h"
 
 #include "base_types.h"
+#include "cw32f030_gpio.h"
 #include "cw32f030_i2c.h"
+
+void I2C_Configuration(void)
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+    I2C_InitTypeDef I2C_InitStruct;
+
+    __RCC_GPIOB_CLK_ENABLE();
+    __RCC_I2C1_CLK_ENABLE();
+
+    PB10_AFx_I2C1SCL();
+    PB11_AFx_I2C1SDA();
+
+    /* 引脚初始化 */
+    GPIO_InitStruct.Pins  = GPIO_PIN_10 | GPIO_PIN_11;  // GPIO引脚
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_OD;        // i2c必须开漏输出
+    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;            // 高速输出
+    GPIO_Init(CW_GPIOB, &GPIO_InitStruct);              // 初始化
+
+    /* i2c初始化 */
+    I2C_InitStruct.I2C_BaudEn = ENABLE;   // 使能波特率计数器
+    I2C_InitStruct.I2C_Baud   = 0x04;     // 400k = (16M / (8 * (4 + 1)))
+    I2C_InitStruct.I2C_FLT    = DISABLE;  // 去使能滤波器
+    I2C_InitStruct.I2C_AA     = DISABLE;  // 应答时发送ACK
+
+    I2C1_DeInit();
+    I2C_Master_Init(CW_I2C1, &I2C_InitStruct);  // 初始化模块
+    I2C_Cmd(CW_I2C1, ENABLE);                   // 模块使能
+}
 
 /**
  * @brief 发送i2c起始信号

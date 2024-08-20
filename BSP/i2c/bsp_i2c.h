@@ -24,11 +24,10 @@ typedef enum {
     BUS_READY = 0xF8   // I2C总线空闲
 } I2C_STA;
 
-typedef enum {
-    I2C_WRITE = 0,
-    I2C_READ = 1
-} I2C_RWTypedef;
+typedef enum { I2C_WRITE = 0,
+               I2C_READ  = 1 } I2C_RWTypedef;
 
+void I2C_Configuration(void);
 I2C_STA i2c_start(I2C_TypeDef *I2Cx);
 I2C_STA i2c_send_addr(I2C_TypeDef *I2Cx, uint8_t addr, I2C_RWTypedef rw);
 I2C_STA i2c_send_data(I2C_TypeDef *I2Cx, uint8_t data);
