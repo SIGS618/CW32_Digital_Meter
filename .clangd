@@ -1,0 +1,6 @@
+CompileFlags:
+    Add:
+        - -Id:\Programs\Keil_Arm_IDE\Keil_v5\ARM\ARMCLANG/include
+        - -Id:\Programs\Keil_Arm_IDE\Keil_v5\ARM\ARMCLANG/include/libcxx
+    CompilationDatabase: ./build/Project
+    Compiler: d:\Programs\Keil_Arm_IDE\Keil_v5\ARM\ARMCLANG\bin\armclang.exe
