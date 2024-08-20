@@ -23,7 +23,7 @@ void I2C_Configuration(void)
 
     /* i2c初始化 */
     I2C_InitStruct.I2C_BaudEn = ENABLE;   // 使能波特率计数器
-    I2C_InitStruct.I2C_Baud   = 0x04;     // 400k = (16M / (8 * (4 + 1)))
+    I2C_InitStruct.I2C_Baud   = 0x13;     // 400k = (64M / (8 * (19 + 1)))
     I2C_InitStruct.I2C_FLT    = DISABLE;  // 去使能滤波器
     I2C_InitStruct.I2C_AA     = DISABLE;  // 应答时发送ACK
 

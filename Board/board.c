@@ -22,8 +22,8 @@ void board_init(void)
                    RCC_HSE_FLT_CLOSE);
     // 设置HCLK的预分频系数, HCLK=64MHz
     RCC_HCLKPRS_Config(RCC_HCLK_DIV1);
-    // 设置PCLK的预分频系数, PCLK=16MHz
-    RCC_PCLKPRS_Config(RCC_PCLK_DIV4);
+    // 设置PCLK的预分频系数, PCLK=64MHz
+    RCC_PCLKPRS_Config(RCC_PCLK_DIV1);
     // 使能PLL, 配置PLL输入为HSE、倍频系数为8, 主频为64MHz
     RCC_PLL_Enable(RCC_PLLSOURCE_HSEOSC, 8000000, RCC_PLL_MUL_8);
     // 使能FLASH时钟

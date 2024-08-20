@@ -11,7 +11,7 @@ void TIM_Configuration(void)
 
     __RCC_BTIM_CLK_ENABLE();
 
-    BTIM_InitStruct.BTIM_Prescaler = BTIM_PRS_DIV512;  // 16M / 512 = 31.25k
+    BTIM_InitStruct.BTIM_Prescaler = BTIM_PRS_DIV2048;  // 64M / 2048 = 31.25k
     BTIM_InitStruct.BTIM_Mode      = BTIM_Mode_TIMER;  // 定时器模式
     BTIM_InitStruct.BTIM_Period    = 3125 - 1;         // 100ms
     BTIM_TimeBaseInit(CW_BTIM1, &BTIM_InitStruct);
