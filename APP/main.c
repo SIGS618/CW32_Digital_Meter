@@ -16,16 +16,22 @@
 #include "board.h"
 #include "bsp_adc.h"
 #include "bsp_i2c.h"
+#include "bsp_tim.h"
 #include "bsp_uart.h"
 #include "cw32f030.h"
+#include "cw32f030_gpio.h"
 #include "font.h"
 #include "oled.h"
 
 #define CONV_TIME 10
 
-uint32_t calAverage(void);
+void calAverage(void);
 
-uint16_t ADC_Value[CONV_TIME] = {0};  // DMA搬运的目标地址
+uint16_t ADC_Value[CONV_TIME] = {0};  // DMA搬运的目标数组(地址)
+float32_t cnv_value;                  // 计算得到的电压
+char sprintf_buf[10];                 // 电压/电流值字符串
+
+uint8_t flag_NewFrame = 0;  // 判断是否要刷新屏幕
 
 int32_t main(void)
 {
@@ -33,42 +39,40 @@ int32_t main(void)
 
     // 外设初始化
     ADC_DMA_Configuration((uint32_t)ADC_Value, CONV_TIME);
+    TIM_Configuration();
     I2C_Configuration();
 
     delay_ms(200);  // ?OLED屏幕的启动比CW32稍慢
     OLED_Init();
-    OLED_NewFrame();
-
-    float32_t conv_result = 0;
-    char sprintf_buf[10];
+    OLED_NewFrame();  // 清屏
 
     ADC_SoftwareStartConvCmd(ENABLE);  // 软件转换开始
 
     while (1) {
-        // conv_result = 1.5 * calAverage() / (1 << 12) * 2;
-        // sprintf(sprintf_buf, "%2.3f", conv_result);
+        // for (uint8_t i = 0; i < 64; i++) {
+        //     OLED_NewFrame();
+        //     OLED_DrawCircle(64, 32, i, OLED_COLOR_NORMAL);
+        //     OLED_DrawCircle(64, 32, 2 * i, OLED_COLOR_NORMAL);
+        //     OLED_DrawCircle(64, 32, 3 * i, OLED_COLOR_NORMAL);
+        //     OLED_ShowFrame();
+        // }
 
-        // OLED_PrintASCIIString(30, 24, sprintf_buf, &afont16x8,
-        //                       OLED_COLOR_NORMAL);
-        // OLED_PrintASCIIString(100, 24, "V", &afont16x8, OLED_COLOR_NORMAL);
-        for (uint8_t i = 0; i < 64; i++) {
+        if (flag_NewFrame) {
             OLED_NewFrame();
-            OLED_DrawCircle(64, 32, i, OLED_COLOR_NORMAL);
-            OLED_DrawCircle(64, 32, 2 * i, OLED_COLOR_NORMAL);
-            OLED_DrawCircle(64, 32, 3 * i, OLED_COLOR_NORMAL);
+            sprintf(sprintf_buf, "%2.3f", cnv_value);
+            OLED_PrintASCIIString(30, 24, sprintf_buf, &afont16x8, OLED_COLOR_NORMAL);
+            OLED_PrintASCIIString(100, 24, "V", &afont16x8, OLED_COLOR_NORMAL);
             OLED_ShowFrame();
+            flag_NewFrame = 0;
         }
-        // OLED_ShowFrame();
-
-        // delay_ms(500);
     }
 }
 
-uint32_t calAverage(void)
+void calAverage(void)
 {
-    uint64_t sum = 0;
-    for (uint32_t i = 0; i < CONV_TIME; i++) { sum += ADC_Value[i]; }
-    return sum / CONV_TIME;
+    uint32_t sum = 0;
+    for (uint8_t i = 0; i < CONV_TIME; i++) { sum += ADC_Value[i]; }
+    cnv_value = 1.5 * sum / CONV_TIME / (1 << 12) * 2;  // todo: 2是档位增益, 要切换
 }
 
 // DMA通道1中断服务函数
@@ -88,6 +92,16 @@ void ADC_IRQHandler(void)
     if (ADC_GetITStatus(ADC_IT_EOC) != RESET) {
         ADC_ClearITPendingBit(ADC_IT_EOC);
         ADC_SoftwareStartConvCmd(ENABLE);  // 使能下一次转换
+    }
+}
+
+// BTIM1中断服务函数 100ms
+void BTIM1_IRQHandler(void)
+{
+    if (BTIM_GetITStatus(CW_BTIM1, BTIM_IT_OV)) {  // 判断中断来源
+        calAverage();
+        flag_NewFrame = 1;
+        BTIM_ClearITPendingBit(CW_BTIM1, BTIM_IT_OV);  // 清除中断标志位
     }
 }
 

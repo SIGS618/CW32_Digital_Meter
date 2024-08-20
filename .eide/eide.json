@@ -202,9 +202,10 @@
           "APP",
           "BSP",
           "Board",
-          "BSP/i2c",
-          "BSP/uart",
           "BSP/adc",
+          "BSP/i2c",
+          "BSP/tim",
+          "BSP/uart",
           "Libraries/inc",
           "Module",
           "Module/OLED"
