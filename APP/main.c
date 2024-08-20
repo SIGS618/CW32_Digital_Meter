@@ -46,7 +46,7 @@ int32_t main(void)
     OLED_Init();
     OLED_NewFrame();  // 清屏
 
-    ADC_SoftwareStartConvCmd(ENABLE);  // 软件转换开始
+    ADC_SoftwareStartConvCmd(ENABLE);  // 软件使能ADC转换
 
     while (1) {
         // for (uint8_t i = 0; i < 64; i++) {
@@ -83,15 +83,6 @@ void DMACH1_IRQHandler(void)
         CW_DMACHANNEL1->CNT     = 0x10010;              // 重置CNT计数
         CW_DMACHANNEL1->DSTADDR = (uint32_t)ADC_Value;  // 重置目的地址
         DMA_Cmd(CW_DMACHANNEL1, ENABLE);                // 重新使能DMA
-    }
-}
-
-// ADC中断服务函数
-void ADC_IRQHandler(void)
-{
-    if (ADC_GetITStatus(ADC_IT_EOC) != RESET) {
-        ADC_ClearITPendingBit(ADC_IT_EOC);
-        ADC_SoftwareStartConvCmd(ENABLE);  // 使能下一次转换
     }
 }
 

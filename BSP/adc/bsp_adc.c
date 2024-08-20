@@ -21,27 +21,22 @@ void ADC_Configuration(void)
     PA00_ANALOG_ENABLE();  // 设置PA00(IN0)为模拟输入
 
     /* ADC配置 */
-    ADC_InitStruct.ADC_OpMode     = ADC_SingleChOneMode;  // 单通道单次转换模式
-    ADC_InitStruct.ADC_ClkDiv     = ADC_Clk_Div16;        // ADDCLK由PCLK 16分频得到
-    ADC_InitStruct.ADC_SampleTime = ADC_SampTime10Clk;    // 采样时间为5个ADC时钟周期
-    ADC_InitStruct.ADC_VrefSel    = ADC_Vref_BGR1p5;      // 选择内置1.5V作为参考电压
-    ADC_InitStruct.ADC_InBufEn    = ADC_BufEnable;        // 使能输入增益
-    ADC_InitStruct.ADC_TsEn       = ADC_TsDisable;        // 不使能内置温度传感器
-    ADC_InitStruct.ADC_DMAEn      = ADC_DmaEnable;        // ADC转换完成触发DMA
-    ADC_InitStruct.ADC_Align      = ADC_AlignRight;       // ADC转换结果右对齐
-    ADC_InitStruct.ADC_AccEn      = ADC_AccDisable;       // 不使能结果累加
+    ADC_InitStruct.ADC_OpMode     = ADC_SingleChContinuousMode;  // 单通道连续转换模式
+    ADC_InitStruct.ADC_ClkDiv     = ADC_Clk_Div16;               // ADDCLK由PCLK 16分频得到
+    ADC_InitStruct.ADC_SampleTime = ADC_SampTime10Clk;           // 采样时间为10个ADC时钟周期
+    ADC_InitStruct.ADC_VrefSel    = ADC_Vref_BGR1p5;             // 选择内置1.5V作为参考电压
+    ADC_InitStruct.ADC_InBufEn    = ADC_BufEnable;               // 使能输入增益
+    ADC_InitStruct.ADC_TsEn       = ADC_TsDisable;               // 不使能内置温度传感器
+    ADC_InitStruct.ADC_DMAEn      = ADC_DmaEnable;               // ADC转换完成触发DMA
+    ADC_InitStruct.ADC_Align      = ADC_AlignRight;              // ADC转换结果右对齐
+    ADC_InitStruct.ADC_AccEn      = ADC_AccDisable;              // 不使能结果累加
 
     ADC_Init(&ADC_InitStruct);  // 使用结构体初始化ADC
     // 不在ADC初始化结构体中的配置
     CW_ADC->CR1_f.DISCARD = FALSE;           // 配置数据覆盖更新
     CW_ADC->CR1_f.CHMUX   = ADC_ExInputCH0;  // 配置ADC输入通道0
 
-    ADC_ClearITPendingAll();           // 清除中断标志
-    ADC_ITConfig(ADC_IT_EOC, ENABLE);  // 使能采集完成中断
-    ADC_EnableNvic(ADC_INT_PRIORITY);  // 使能NVIC中的ADC中断
-
-    ADC_Enable();                      // 使能ADC
-    ADC_SoftwareStartConvCmd(ENABLE);  // 软件转换开始
+    ADC_Enable();  // 使能ADC
 }
 
 void DMA_Configuration(uint32_t DMA_DstAddress, int DMA_TransferCnt)
