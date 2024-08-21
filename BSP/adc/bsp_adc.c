@@ -1,24 +1,32 @@
 #include "bsp_adc.h"
 
+#include <stdint.h>
+
 #include "cw32f030_adc.h"
 #include "cw32f030_dma.h"
 #include "cw32f030_gpio.h"
 #include "cw32f030_rcc.h"
 
-void ADC_Configuration(void)
+
+const uint32_t ADC_Gain[] = {2, 23, 1, 1};
+
+void GPIO_Configuration(void)
 {
-    GPIO_InitTypeDef GPIO_InitStruct;
-    ADC_InitTypeDef ADC_InitStruct;  // ADC初始化结构体
-
     __RCC_GPIOA_CLK_ENABLE();  // 使能GPIOA时钟(ADC引脚在GPIOA上)
-    __RCC_ADC_CLK_ENABLE();    // 使能ADC时钟
 
-    /* GPIO配置 */  // ?未必是必要的
-    GPIO_InitStruct.IT   = GPIO_IT_NONE;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-    GPIO_InitStruct.Pins = GPIO_PIN_0;
-    GPIO_Init(CW_GPIOA, &GPIO_InitStruct);
     PA00_ANALOG_ENABLE();  // 设置PA00(IN0)为模拟输入
+    PA01_ANALOG_ENABLE();  // 设置PA01(IN1)为模拟输入
+    PA02_ANALOG_ENABLE();  // 设置PA02(IN2)为模拟输入
+    PA03_ANALOG_ENABLE();  // 设置PA03(IN3)为模拟输入
+}
+
+void ADC_Configuration(ADC_ChTypeDef ch)
+{
+    ADC_InitTypeDef ADC_InitStruct;          // ADC初始化结构体
+    ADC_WdtTypeDef ADC_WdtStruct;            // ADC看门狗配置结构体
+    ADC_SingleChTypeDef ADC_SingleChStruct;  // ADC单通道配置结构体
+
+    __RCC_ADC_CLK_ENABLE();  // 使能ADC时钟
 
     /* ADC配置 */
     ADC_InitStruct.ADC_OpMode     = ADC_SingleChContinuousMode;  // 单通道连续转换模式
@@ -31,10 +39,16 @@ void ADC_Configuration(void)
     ADC_InitStruct.ADC_Align      = ADC_AlignRight;              // ADC转换结果右对齐
     ADC_InitStruct.ADC_AccEn      = ADC_AccDisable;              // 不使能结果累加
 
-    ADC_Init(&ADC_InitStruct);  // 使用结构体初始化ADC
-    // 不在ADC初始化结构体中的配置
-    CW_ADC->CR1_f.DISCARD = FALSE;           // 配置数据覆盖更新
-    CW_ADC->CR1_f.CHMUX   = ADC_ExInputCH0;  // 配置ADC输入通道0
+    ADC_WdtInit(&ADC_WdtStruct);
+
+    // 配置单通道模式
+    ADC_SingleChStruct.ADC_DiscardEn  = ADC_DiscardNull;  // 覆盖未读写的转换值
+    ADC_SingleChStruct.ADC_Chmux      = (uint32_t)ch;     // 选择ADC转换通道
+    ADC_SingleChStruct.ADC_InitStruct = ADC_InitStruct;   // ADC初始化结构体
+    ADC_SingleChStruct.ADC_WdtStruct  = ADC_WdtStruct;    // ADC看门狗结构体
+
+    ADC_DeInit();
+    ADC_SingleChContinuousModeCfg(&ADC_SingleChStruct);
 
     ADC_Enable();  // 使能ADC
 }
@@ -73,6 +87,12 @@ void DMA_Configuration(uint32_t DMA_DstAddress, int DMA_TransferCnt)
 
 void ADC_DMA_Configuration(uint32_t DMA_DstAddress, int DMA_TransferCnt)
 {
-    ADC_Configuration();
+    GPIO_Configuration();
+    ADC_Configuration(Voltage_REF);
     DMA_Configuration(DMA_DstAddress, DMA_TransferCnt);
+}
+
+void ADC_SwitchCh(ADC_ChTypeDef ch)
+{
+    ADC_Configuration(ch);
 }

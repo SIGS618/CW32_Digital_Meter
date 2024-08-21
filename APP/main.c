@@ -1,14 +1,3 @@
-/*
- * 立创开发板软硬件资料与相关扩展板软硬件资料官网全部开源
- * 开发板官网：www.lckfb.com
- * 技术支持常驻论坛，任何技术问题欢迎随时交流学习
- * 立创论坛：https://oshwhub.com/forum
- * 关注bilibili账号：【立创开发板】，掌握我们的最新动态！
- * 不靠卖板赚钱，以培养中国工程师为己任
- * Change Logs:
- * Date           Author       Notes
- * 2024-06-12     LCKFB-LP    first version
- */
 #include <stdint.h>
 #include <stdio.h>
 
@@ -19,7 +8,6 @@
 #include "bsp_tim.h"
 #include "bsp_uart.h"
 #include "cw32f030.h"
-#include "cw32f030_gpio.h"
 #include "font.h"
 #include "oled.h"
 
@@ -27,9 +15,10 @@
 
 void calAverage(void);
 
-uint16_t ADC_Value[CONV_TIME] = {0};  // DMA搬运的目标数组(地址)
-float32_t cnv_value;                  // 计算得到的电压
-char sprintf_buf[10];                 // 电压/电流值字符串
+ADC_ChTypeDef ADC_Ch          = Voltage_REF;  // 默认ADC采样通道为2.5V参考电压
+uint16_t ADC_Value[CONV_TIME] = {0};          // DMA搬运的目标数组(地址)
+float32_t cnv_value;                          // 计算得到的电压
+char sprintf_buf[10];                         // 电压/电流值字符串
 
 uint8_t flag_NewFrame = 0;  // 判断是否要刷新屏幕
 
@@ -42,10 +31,12 @@ int32_t main(void)
     TIM_Configuration();
     I2C_Configuration();
 
-    delay_ms(200);  // ?OLED屏幕的启动比CW32稍慢
-    OLED_Init();
+    delay_ms(200);    // OLED屏幕的启动比CW32稍慢
+    OLED_Init();      // OLED初始化
     OLED_NewFrame();  // 清屏
 
+    ADC_Ch = Voltage_AMP2;
+    ADC_SwitchCh(ADC_Ch);
     ADC_SoftwareStartConvCmd(ENABLE);  // 软件使能ADC转换
 
     while (1) {
@@ -72,7 +63,7 @@ void calAverage(void)
 {
     uint32_t sum = 0;
     for (uint8_t i = 0; i < CONV_TIME; i++) { sum += ADC_Value[i]; }
-    cnv_value = 1.5 * sum / CONV_TIME / (1 << 12) * 2;  // todo: 2是档位增益, 要切换
+    cnv_value = 1.5 * sum / CONV_TIME / (1 << 12) * ADC_Gain[ADC_Ch];
 }
 
 // DMA通道1中断服务函数
