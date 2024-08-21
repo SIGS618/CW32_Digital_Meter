@@ -13,11 +13,11 @@
 #include "multi_button.h"
 #include "oled.h"
 
-#define CONV_TIME 10
+#define CNV_TIMES 10
 
 void calAverage(void);
 
-uint16_t ADC_Value[CONV_TIME] = {0};  // DMA搬运的目标数组(地址)
+uint16_t ADC_Value[CNV_TIMES] = {0};  // DMA搬运的目标数组(地址)
 float32_t cnv_value;                  // 计算得到的电压
 char sprintf_buf[10];                 // 电压/电流值字符串
 
@@ -29,7 +29,7 @@ int32_t main(void)
 
     // 外设初始化
     GPIO_Configuration();
-    ADC_DMA_Configuration((uint32_t)ADC_Value, CONV_TIME);
+    ADC_DMA_Configuration((uint32_t)ADC_Value, CNV_TIMES);
     I2C_Configuration();
     TIM_Configuration();
 
@@ -62,8 +62,8 @@ int32_t main(void)
 void calAverage(void)
 {
     uint32_t sum = 0;
-    for (uint8_t i = 0; i < CONV_TIME; i++) sum += ADC_Value[i];
-    cnv_value = 1.5 * sum / CONV_TIME / (1 << 12) * ADC_Gain[ADC_Ch];
+    for (uint8_t i = 0; i < CNV_TIMES; i++) sum += ADC_Value[i];
+    cnv_value = 1.5 * sum / CNV_TIMES / (1 << 12) * ADC_Gain[ADC_Ch];
 }
 
 // DMA通道1中断服务函数
@@ -83,6 +83,16 @@ void BTIM1_IRQHandler(void)
     if (BTIM_GetITStatus(CW_BTIM1, BTIM_IT_OV)) {  // 判断中断来源
         calAverage();
         flag_NewFrame = 1;
+
+        // 换挡
+        if (ADC_Ch == Voltage_AMP2 && cnv_value > 2.99) {
+            ADC_Ch = Voltage_AMP23;
+            ADC_SwitchCh((uint32_t)ADC_Value, CNV_TIMES);
+        } else if (ADC_Ch == Voltage_AMP23 && cnv_value < 2.8) {
+            ADC_Ch = Voltage_AMP2;
+            ADC_SwitchCh((uint32_t)ADC_Value, CNV_TIMES);
+        }
+
         BTIM_ClearITPendingBit(CW_BTIM1, BTIM_IT_OV);  // 清除中断标志位
     }
 }
@@ -108,12 +118,12 @@ void OLED_Send(uint8_t *data, uint8_t len)
 void Left_SignleClick_Handler(void *btn)
 {
     ADC_Ch = Voltage_AMP23;
-    ADC_SwitchCh((uint32_t)ADC_Value, CONV_TIME);
+    ADC_SwitchCh((uint32_t)ADC_Value, CNV_TIMES);
 }
 
 void Right_SignleClick_Handler(void *btn)
 {
-    ADC_Ch = Voltage_AMP2;
-    ADC_SwitchCh((uint32_t)ADC_Value, CONV_TIME);
+    ADC_Ch = Current;
+    ADC_SwitchCh((uint32_t)ADC_Value, CNV_TIMES);
     PC13_TOG();
 }
