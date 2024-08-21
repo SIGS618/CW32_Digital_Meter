@@ -10,7 +10,7 @@
 
 const uint32_t ADC_Gain[] = {2, 23, 1, 1};
 
-void GPIO_Configuration(void)
+static void GPIO_Configuration(void)
 {
     __RCC_GPIOA_CLK_ENABLE();  // 使能GPIOA时钟(ADC引脚在GPIOA上)
 
