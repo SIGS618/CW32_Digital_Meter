@@ -2,12 +2,14 @@
 
 #include <stdint.h>
 
+#include "base_types.h"
+#include "cw32f030.h"
 #include "cw32f030_adc.h"
 #include "cw32f030_dma.h"
 #include "cw32f030_gpio.h"
 #include "cw32f030_rcc.h"
 
-
+ADC_ChTypeDef ADC_Ch      = Voltage_AMP2;  // 默认ADC采样通道为2.5V参考电压
 const uint32_t ADC_Gain[] = {2, 23, 1, 1};
 
 static void GPIO_Configuration(void)
@@ -20,7 +22,7 @@ static void GPIO_Configuration(void)
     PA03_ANALOG_ENABLE();  // 设置PA03(IN3)为模拟输入
 }
 
-void ADC_Configuration(ADC_ChTypeDef ch)
+void ADC_Configuration(void)
 {
     ADC_InitTypeDef ADC_InitStruct;          // ADC初始化结构体
     ADC_WdtTypeDef ADC_WdtStruct;            // ADC看门狗配置结构体
@@ -42,12 +44,11 @@ void ADC_Configuration(ADC_ChTypeDef ch)
     ADC_WdtInit(&ADC_WdtStruct);
 
     // 配置单通道模式
-    ADC_SingleChStruct.ADC_DiscardEn  = ADC_DiscardNull;  // 覆盖未读写的转换值
-    ADC_SingleChStruct.ADC_Chmux      = (uint32_t)ch;     // 选择ADC转换通道
-    ADC_SingleChStruct.ADC_InitStruct = ADC_InitStruct;   // ADC初始化结构体
-    ADC_SingleChStruct.ADC_WdtStruct  = ADC_WdtStruct;    // ADC看门狗结构体
+    ADC_SingleChStruct.ADC_DiscardEn  = ADC_DiscardNull;   // 覆盖未读写的转换值
+    ADC_SingleChStruct.ADC_Chmux      = (uint32_t)ADC_Ch;  // 选择ADC转换通道
+    ADC_SingleChStruct.ADC_InitStruct = ADC_InitStruct;    // ADC初始化结构体
+    ADC_SingleChStruct.ADC_WdtStruct  = ADC_WdtStruct;     // ADC看门狗结构体
 
-    ADC_DeInit();
     ADC_SingleChContinuousModeCfg(&ADC_SingleChStruct);
 
     ADC_Enable();  // 使能ADC
@@ -88,11 +89,16 @@ void DMA_Configuration(uint32_t DMA_DstAddress, int DMA_TransferCnt)
 void ADC_DMA_Configuration(uint32_t DMA_DstAddress, int DMA_TransferCnt)
 {
     GPIO_Configuration();
-    ADC_Configuration(Voltage_REF);
+    ADC_Configuration();
     DMA_Configuration(DMA_DstAddress, DMA_TransferCnt);
 }
 
-void ADC_SwitchCh(ADC_ChTypeDef ch)
+void ADC_SwitchCh(uint32_t DMA_DstAddress, int DMA_TransferCnt)
 {
-    ADC_Configuration(ch);
+    ADC_SoftwareStartConvCmd(DISABLE);
+    DMA_DeInit(CW_DMACHANNEL1);
+    ADC_DeInit();
+    ADC_Configuration();
+    DMA_Configuration(DMA_DstAddress, DMA_TransferCnt);
+    ADC_SoftwareStartConvCmd(ENABLE);
 }

@@ -12,9 +12,10 @@ typedef enum {
     Voltage_REF = ADC_ExInputCH3
 } ADC_ChTypeDef;
 
+extern ADC_ChTypeDef ADC_Ch;
 extern const uint32_t ADC_Gain[];
 
 void ADC_DMA_Configuration(uint32_t DMA_DstAddress, int DMA_TransferCnt);
-void ADC_SwitchCh(ADC_ChTypeDef ch);
+void ADC_SwitchCh(uint32_t DMA_DstAddress, int DMA_TransferCnt);
 
 #endif

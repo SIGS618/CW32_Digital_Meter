@@ -200,15 +200,15 @@
           ".",
           ".cmsis/include",
           "APP",
-          "BSP",
           "Board",
           "BSP/adc",
+          "BSP/gpio",
           "BSP/i2c",
           "BSP/tim",
           "BSP/uart",
           "Libraries/inc",
-          "Module",
-          "Module/OLED"
+          "Module/OLED",
+          "Module/multi_button"
         ],
         "libList": [],
         "defineList": []
