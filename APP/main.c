@@ -33,7 +33,7 @@ int32_t main(void)
     I2C_Configuration();
     TIM_Configuration();
 
-    delay_ms(200);    // OLED屏幕的启动比CW32稍慢
+    delay_ms(100);    // OLED屏幕的启动比CW32稍慢
     OLED_Init();      // OLED初始化
     OLED_NewFrame();  // 清屏
 

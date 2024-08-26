@@ -38,28 +38,29 @@
 
 const uint8_t oled_init_cmd[] = {
     0xAE,  // turn off oled panel
-    0x00,  // set low column address
-    0x10,  // set high column address
-    0x40,  // set Mapping RAM Display Start Line (0x00~0x3F)
-    0x81,  // set contrast control register
-    0xCF,  // Set SEG Output Current Brightness
-    0xA1,  // Set SEG/Column Mapping     0xa0左右反置 0xa1正常
-    0xC8,  // Set COM/Row Scan Direction   0xc0上下反置 0xc8正常
-    0xA6,  // set normal display
+    0xD5,  // set display clock divide ratio/oscillator frequency
+    0x80,  // set divide ratio, Set Clock as 100 Frames/Sec
     0xA8,  // set multiplex ratio(1 to 64)
-    0x3f,  // 1/64 duty
+    0x3F,  // 1/64 duty
     0xD3,  // set display offset	Shift Mapping RAM Counter (0x00~0x3F)
     0x00,  // not offset
-    0xd5,  // set display clock divide ratio/oscillator frequency
-    0x80,  // set divide ratio, Set Clock as 100 Frames/Sec
+    0x40,  // set Mapping RAM Display Start Line (0x00~0x3F)
+    0xA1,  // Set SEG/Column Mapping     0xa0左右反置 0xa1正常
+    0xC8,  // Set COM/Row Scan Direction   0xc0上下反置 0xc8正常
+    0xDA,
+    0x12,  // set com pins hardware configuration
+    0x81,  // set contrast control register
+    0xCF,  // Set SEG Output Current Brightness
     0xD9,  // set pre-charge period
     0xF1,  // Set Pre-Charge as 15 Clocks & Discharge as 1 Clock
-    0xDA,  // set com pins hardware configuration
-    0x12,
-    0xDB,  // set vcomh
+    0xDB,
     0x30,  // set VCOM Deselect Level
-    0x20,  // set Page Addressing Mode (0x00/0x01/0x02)
-    0x02,  //
+    0xA4,  // set entire display on/off
+    0xA6,  // set normal display
+    // 0x00,  // set low column address
+    // 0x10,  // set high column address
+    // 0x20,
+    // 0x02,  // set Page Addressing Mode (0x00/0x01/0x02)
     0x8D,  // set Charge Pump enable/disable
     0x14,  // set(0x10) disable
     0xAF   // 开启显示
@@ -672,7 +673,7 @@ uint8_t _OLED_GetUTF8Len(char *string)
 void OLED_PrintString(uint8_t x, uint8_t y, char *str, const Font *font,
                       OLED_ColorMode color)
 {
-    uint16_t i = 0;                                        // 字符串索引
+    uint16_t i     = 0;                                    // 字符串索引
     uint8_t oneLen = (((font->h + 7) / 8) * font->w) + 4;  // 一个字模占多少字节
     uint8_t found;                                         // 是否找到字模
     uint8_t utf8Len;                                       // UTF-8编码长度
