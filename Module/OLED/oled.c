@@ -91,9 +91,6 @@ void __WEAK OLED_Send(uint8_t *data, uint8_t len)
  */
 void OLED_SendCmd(uint8_t cmd)
 {
-    // static uint8_t sendBuffer[2] = {0};
-    // sendBuffer[1]                = cmd;
-    // OLED_Send(sendBuffer, 2);
     oled_frame.DC_byte.Co       = 1;
     oled_frame.DC_byte.DC       = COMMAND;
     oled_frame.DC_byte.NC       = 0;
@@ -164,11 +161,15 @@ void OLED_NewFrame() { memset(OLED_GRAM, 0, sizeof(OLED_GRAM)); }
 void OLED_ShowFrame()
 {
     static uint8_t sendBuffer[OLED_COLUMN + 1];
-    sendBuffer[0] = 0x40;
     for (uint8_t i = 0; i < OLED_PAGE; i++) {
         OLED_SendCmd(0xB0 + i);  // 设置页地址
         OLED_SendCmd(0x00);      // 设置列地址低4位
         OLED_SendCmd(0x10);      // 设置列地址高4位
+
+        oled_frame.DC_byte.Co = 0;
+        oled_frame.DC_byte.DC = 1;
+        oled_frame.DC_byte.NC = 0;
+        sendBuffer[0] = oled_frame.DC_byte.value[0];
         memcpy(sendBuffer + 1, OLED_GRAM[i], OLED_COLUMN);
         OLED_Send(sendBuffer, OLED_COLUMN + 1);
     }
